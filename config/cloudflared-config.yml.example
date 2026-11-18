@@ -1,0 +1,13 @@
+# Contoh konfigurasi Cloudflare Tunnel (/etc/cloudflared/config.yml)
+# Ganti <TUNNEL-ID> dan hostname sesuai akun Cloudflare Zero Trust Anda.
+
+tunnel: <TUNNEL-ID>
+credentials-file: /etc/cloudflared/<TUNNEL-ID>.json
+
+ingress:
+  - hostname: absensi.domainanda.com
+    service: http://127.0.0.1:8080
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 10s
+  - service: http_status:404

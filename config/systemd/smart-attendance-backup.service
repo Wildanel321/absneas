@@ -1,0 +1,14 @@
+[Unit]
+Description=Smart Attendance Daily SQLite Online Backup to USB
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/smart-attendance
+ExecStart=/var/www/smart-attendance/scripts/backup-usb.sh
+Nice=10
+IOSchedulingClass=idle
+StandardOutput=journal
+StandardError=journal

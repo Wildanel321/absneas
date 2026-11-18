@@ -1,0 +1,23 @@
+{
+    "name": "smart-attendance/raspberry-pi",
+    "description": "Lightweight QR and GPS employee attendance PWA built with Native PHP and SQLite for Raspberry Pi 3.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "ext-sqlite3": "*",
+        "ext-json": "*",
+        "ext-openssl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "scripts": {
+        "migrate": "php bin/migrate.php",
+        "test": "php tests/run.php"
+    }
+}

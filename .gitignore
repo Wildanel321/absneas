@@ -1,0 +1,11 @@
+.env
+/vendor/
+/storage/database/*.sqlite
+/storage/database/*.sqlite-wal
+/storage/database/*.sqlite-shm
+/storage/backups/*.sqlite
+/storage/backups/*.sqlite.gz
+/storage/logs/*.log
+/node_modules/
+.DS_Store
+Thumbs.db
