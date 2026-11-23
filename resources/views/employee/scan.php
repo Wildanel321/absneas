@@ -36,9 +36,19 @@
 
   <div class="scanner-stage" style="margin-bottom:14px;">
     <video id="scannerVideo" playsinline muted width="720" height="540"></video>
-    <div class="scanner-reticle" aria-hidden="true">
+    <div id="scannerReticle" class="scanner-reticle" aria-hidden="true">
       <div class="scanner-reticle-box"></div>
     </div>
+    <div id="selfieReticle" class="selfie-reticle" style="display:none;" aria-hidden="true">
+      <div class="selfie-face-oval"></div>
+      <span class="selfie-label">Posisikan wajah Anda untuk foto selfie singkat</span>
+    </div>
+  </div>
+
+  <div id="selfieActionRow" class="action-row" style="display:none;margin-bottom:14px;">
+    <button type="button" id="snapSelfieBtn" class="btn btn-primary" style="min-height:44px;width:100%;">
+      Ambil Foto Selfie &amp; Kirim Absensi
+    </button>
   </div>
 
   <div class="action-row">

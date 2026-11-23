@@ -9,6 +9,9 @@
   <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="stylesheet" href="/assets/css/app.css">
+  <?php if (($activeNav ?? '') === 'settings'): ?>
+    <link rel="stylesheet" href="/assets/css/leaflet.css">
+  <?php endif; ?>
 </head>
 <body>
   <a href="#mainContent" class="skip-link">Lewati ke konten utama</a>
@@ -118,6 +121,9 @@
     </div>
   </div>
 
+  <?php if (($activeNav ?? '') === 'settings'): ?>
+    <script src="/assets/js/vendor/leaflet.js" defer></script>
+  <?php endif; ?>
   <script src="/assets/js/app.js" defer></script>
   <?php if (($activeNav ?? '') === 'dashboard'): ?>
     <script src="/assets/js/charts.js" defer></script>

@@ -36,21 +36,29 @@ $kioskUrl = '/kiosk?key=' . rawurlencode((string) ($kioskKey ?? ''));
       </select>
     </div>
 
-    <div class="field">
-      <label for="office_lat">Latitude Kantor</label>
-      <input id="office_lat" name="office_lat" type="number" step="0.000001" required value="<?= $e($settings['office_lat'] ?? '-6.200000') ?>">
-    </div>
-
-    <div class="field">
-      <label for="office_lng">Longitude Kantor</label>
-      <input id="office_lng" name="office_lng" type="number" step="0.000001" required value="<?= $e($settings['office_lng'] ?? '106.816666') ?>">
-    </div>
-
     <div class="field" style="grid-column:1 / -1;">
-      <div class="action-row">
-        <button type="button" id="fillOfficeGpsBtn" class="btn btn-secondary btn-sm">Gunakan Lokasi GPS Perangkat Ini</button>
-        <span id="officeGpsStatus" class="hint">Pastikan Anda berada di titik kantor saat mengambil koordinat otomatis.</span>
+      <label for="paste_coords">Pilih Lokasi Kantor pada Peta (Leaflet OpenStreetMap)</label>
+      <div class="action-row" style="margin-bottom:10px;">
+        <input id="paste_coords" type="text" placeholder="Tempel koordinat Google Maps (contoh: -6.208765, 106.845612)" style="flex:1;min-width:260px;">
+        <button type="button" id="applyPastedCoordsBtn" class="btn btn-secondary btn-sm" style="min-height:44px;">Terapkan dari Google Maps</button>
+        <button type="button" id="fillOfficeGpsBtn" class="btn btn-secondary btn-sm" style="min-height:44px;">Gunakan GPS Perangkat Ini</button>
       </div>
+      <div id="officeMap" style="height:360px;width:100%;border-radius:8px;border:1px solid var(--border);position:relative;z-index:1;"></div>
+      <div style="margin-top:8px;">
+        <span id="officeGpsStatus" class="hint">Geser pin biru pada peta atau klik langsung pada titik kantor. Lingkaran ungu menggambarkan radius batas absensi.</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="office_lat">Latitude Kantor (Garis Lintang)</label>
+      <input id="office_lat" name="office_lat" type="number" step="0.000001" required value="<?= $e($settings['office_lat'] ?? '-6.200000') ?>">
+      <span class="hint">Format desimal bertanda minus (-) untuk wilayah selatan khatulistiwa.</span>
+    </div>
+
+    <div class="field">
+      <label for="office_lng">Longitude Kantor (Garis Bujur / BT)</label>
+      <input id="office_lng" name="office_lng" type="number" step="0.000001" required value="<?= $e($settings['office_lng'] ?? '106.816666') ?>">
+      <span class="hint">Format desimal positif untuk Bujur Timur Indonesia (95 s/d 141).</span>
     </div>
 
     <div class="field">
@@ -66,18 +74,27 @@ $kioskUrl = '/kiosk?key=' . rawurlencode((string) ($kioskKey ?? ''));
     </div>
 
     <div class="field">
-      <label for="work_start_time">Jam Masuk</label>
-      <input id="work_start_time" name="work_start_time" type="time" required value="<?= $e($settings['work_start_time'] ?? '08:00') ?>">
-    </div>
-
-    <div class="field">
-      <label for="work_end_time">Jam Pulang</label>
-      <input id="work_end_time" name="work_end_time" type="time" required value="<?= $e($settings['work_end_time'] ?? '17:00') ?>">
+      <label for="work_start_time">Jam Masuk (Senin - Sabtu)</label>
+      <input id="work_start_time" name="work_start_time" type="time" required value="<?= $e($settings['work_start_time'] ?? '07:45') ?>">
+      <span class="hint">Check-in mulai dibuka jam ini.</span>
     </div>
 
     <div class="field">
       <label for="late_tolerance_minutes">Toleransi Keterlambatan (menit)</label>
-      <input id="late_tolerance_minutes" name="late_tolerance_minutes" type="number" min="0" max="180" required value="<?= $e($settings['late_tolerance_minutes'] ?? '15') ?>">
+      <input id="late_tolerance_minutes" name="late_tolerance_minutes" type="number" min="0" max="180" required value="<?= $e($settings['late_tolerance_minutes'] ?? '20') ?>">
+      <span class="hint">20 menit dari 07:45 berarti tepat waktu hingga 08:05.</span>
+    </div>
+
+    <div class="field">
+      <label for="work_end_time">Jam Pulang (Senin - Jumat)</label>
+      <input id="work_end_time" name="work_end_time" type="time" required value="<?= $e($settings['work_end_time'] ?? '14:00') ?>">
+      <span class="hint">Jam pulang reguler Senin s/d Jumat (14:00).</span>
+    </div>
+
+    <div class="field">
+      <label for="saturday_work_end_time">Jam Pulang Khusus Hari Sabtu</label>
+      <input id="saturday_work_end_time" name="saturday_work_end_time" type="time" required value="<?= $e($settings['saturday_work_end_time'] ?? '12:00') ?>">
+      <span class="hint">Khusus hari Sabtu pulang lebih awal (12:00).</span>
     </div>
 
     <div class="field">

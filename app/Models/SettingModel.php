@@ -56,7 +56,7 @@ final class SettingModel
      */
     public function workingDays(): array
     {
-        $raw = $this->get('working_days', '[1,2,3,4,5]');
+        $raw = $this->get('working_days', '[1,2,3,4,5,6]');
         $decoded = json_decode($raw, true);
         if (!is_array($decoded)) {
             return [1, 2, 3, 4, 5];

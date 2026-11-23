@@ -53,14 +53,15 @@ final class AttendanceModel
         float $accuracyM,
         float $distanceM,
         int $lateMinutes,
-        string $status
+        string $status,
+        ?string $checkinPhoto = null
     ): int {
         $this->db->execute(
             "INSERT INTO attendances (
                 user_id, attendance_date, checkin_at, checkin_lat, checkin_lng,
-                checkin_accuracy_m, checkin_distance_m, late_minutes, status, created_at, updated_at
+                checkin_accuracy_m, checkin_distance_m, late_minutes, status, checkin_photo, created_at, updated_at
             ) VALUES (
-                :uid, :d, :at, :lat, :lng, :acc, :dist, :late, :status,
+                :uid, :d, :at, :lat, :lng, :acc, :dist, :late, :status, :photo,
                 datetime('now', 'localtime'), datetime('now', 'localtime')
             )",
             [
@@ -73,6 +74,7 @@ final class AttendanceModel
                 ':dist' => round($distanceM, 2),
                 ':late' => $lateMinutes,
                 ':status' => $status,
+                ':photo' => $checkinPhoto,
             ]
         );
 

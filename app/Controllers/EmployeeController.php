@@ -100,6 +100,7 @@ final class EmployeeController
         $lat = $req->input('latitude');
         $lng = $req->input('longitude');
         $accuracy = $req->input('accuracy');
+        $rawPhoto = $req->input('photo');
 
         if ($token === '') {
             return Response::json(['ok' => false, 'message' => 'Token QR tidak ditemukan. Pindai ulang QR di monitor kantor.'], 422);
@@ -112,19 +113,78 @@ final class EmployeeController
             ], 422);
         }
 
+        $photoPath = null;
+        if (is_string($rawPhoto) && str_starts_with($rawPhoto, 'data:image/')) {
+            $photoPath = $this->saveSelfiePhoto((int) $user['id'], $rawPhoto);
+        }
+
         $result = $this->attendanceService->processScan(
             (int) $user['id'],
             $token,
             (float) $lat,
             (float) $lng,
-            (float) $accuracy
+            (float) $accuracy,
+            $photoPath
         );
 
         return Response::json([
             'ok' => $result['ok'],
             'message' => $result['message'],
             'data' => $result['data'] ?? null,
+            'photo' => $photoPath,
         ], $result['status']);
+    }
+
+    private function saveSelfiePhoto(int $userId, string $dataUrl): ?string
+    {
+        if (!preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/s', $dataUrl, $matches)) {
+            return null;
+        }
+
+        $ext = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
+        $binary = base64_decode($matches[2], true);
+        if ($binary === false || strlen($binary) < 50 || strlen($binary) > 2 * 1024 * 1024) {
+            return null;
+        }
+
+        $storagePath = (string) $this->app->config('storage_path');
+        $folder = date('Y-m');
+        $dir = $storagePath . '/photos/' . $folder;
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+
+        $filename = sprintf('selfie_%d_%s_%s.%s', $userId, date('Ymd_His'), bin2hex(random_bytes(4)), $ext);
+        $fullPath = $dir . '/' . $filename;
+        if (file_put_contents($fullPath, $binary) === false) {
+            return null;
+        }
+
+        return $folder . '/' . $filename;
+    }
+
+    public function servePhoto(Request $req, array $params): Response
+    {
+        $folder = (string) ($params['folder'] ?? '');
+        $file = (string) ($params['file'] ?? '');
+
+        if (!preg_match('/^\d{4}-\d{2}$/', $folder) || !preg_match('/^selfie_[a-zA-Z0-9_\.]+\.(jpg|png|webp)$/', $file)) {
+            return Response::json(['ok' => false, 'message' => 'Foto tidak ditemukan.'], 404);
+        }
+
+        $fullPath = (string) $this->app->config('storage_path') . '/photos/' . $folder . '/' . $file;
+        if (!is_file($fullPath)) {
+            return Response::json(['ok' => false, 'message' => 'File foto tidak ditemukan.'], 404);
+        }
+
+        $bytes = (string) file_get_contents($fullPath);
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $mime = $ext === 'png' ? 'image/png' : ($ext === 'webp' ? 'image/webp' : 'image/jpeg');
+
+        return new Response($bytes, 200, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 
     public function history(Request $req): Response

@@ -37,6 +37,7 @@ final class AttendanceService
         float $lat,
         float $lng,
         float $accuracyM,
+        ?string $photoPath = null,
         ?int $nowTimestamp = null
     ): array {
         $now = $nowTimestamp ?? time();
@@ -108,7 +109,8 @@ final class AttendanceService
                     $geoCheck,
                     $lateMinutes,
                     $status,
-                    $tokenRow
+                    $tokenRow,
+                    $photoPath
                 ): int {
                     $this->qrTokens->markUsed((int) $tokenRow['id'], $userId);
                     return $this->attendances->recordCheckin(
@@ -120,7 +122,8 @@ final class AttendanceService
                         $accuracyM,
                         (float) $geoCheck['distance_m'],
                         $lateMinutes,
-                        $status
+                        $status,
+                        $photoPath
                     );
                 });
             } catch (\PDOException $e) {
@@ -199,8 +202,8 @@ final class AttendanceService
      */
     public function evaluateArrival(int $timestamp): array
     {
-        $workStart = $this->settings->get('work_start_time', '08:00');
-        $toleranceMin = max(0, $this->settings->getInt('late_tolerance_minutes', 15));
+        $workStart = $this->settings->get('work_start_time', '07:45');
+        $toleranceMin = max(0, $this->settings->getInt('late_tolerance_minutes', 20));
 
         $todayStr = date('Y-m-d', $timestamp);
         $startTs = strtotime($todayStr . ' ' . $workStart . ':00');

@@ -53,9 +53,10 @@ final class AdminSettingsController
         $officeLng = $req->input('office_lng');
         $radiusM = (int) $req->input('geofence_radius_m', 100);
         $maxAccuracyM = (int) $req->input('max_gps_accuracy_m', 150);
-        $workStart = Validator::str($req->input('work_start_time', '08:00'), 5);
-        $workEnd = Validator::str($req->input('work_end_time', '17:00'), 5);
-        $lateTol = (int) $req->input('late_tolerance_minutes', 15);
+        $workStart = Validator::str($req->input('work_start_time', '07:45'), 5);
+        $workEnd = Validator::str($req->input('work_end_time', '14:00'), 5);
+        $saturdayWorkEnd = Validator::str($req->input('saturday_work_end_time', '12:00'), 5);
+        $lateTol = (int) $req->input('late_tolerance_minutes', 20);
         $checkoutBefore = (int) $req->input('checkout_open_before_minutes', 30);
         $qrRefresh = (int) $req->input('qr_refresh_seconds', 30);
         $qrTtl = (int) $req->input('qr_token_ttl_seconds', 45);
@@ -85,11 +86,11 @@ final class AdminSettingsController
             Session::flash('error', 'Batas akurasi GPS harus antara 20 sampai 1000 meter.');
             return Response::redirect('/admin/settings');
         }
-        if (!Validator::isTime($workStart) || !Validator::isTime($workEnd)) {
+        if (!Validator::isTime($workStart) || !Validator::isTime($workEnd) || !Validator::isTime($saturdayWorkEnd)) {
             Session::flash('error', 'Format jam masuk atau jam pulang tidak valid (HH:MM).');
             return Response::redirect('/admin/settings');
         }
-        if ($workEnd <= $workStart) {
+        if ($workEnd <= $workStart || $saturdayWorkEnd <= $workStart) {
             Session::flash('error', 'Jam pulang harus lebih akhir daripada jam masuk.');
             return Response::redirect('/admin/settings');
         }
@@ -120,6 +121,7 @@ final class AdminSettingsController
             'max_gps_accuracy_m' => $maxAccuracyM,
             'work_start_time' => $workStart,
             'work_end_time' => $workEnd,
+            'saturday_work_end_time' => $saturdayWorkEnd,
             'late_tolerance_minutes' => $lateTol,
             'checkout_open_before_minutes' => max(0, min(240, $checkoutBefore)),
             'qr_refresh_seconds' => $qrRefresh,

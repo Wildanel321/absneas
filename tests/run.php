@@ -302,6 +302,23 @@ try {
     assertEquals(200, $kioskGoodKey->status(), 'GET /api/kiosk/qr dengan key valid mengembalikan 200');
     $kioskJson = json_decode($kioskGoodKey->body(), true);
     assertTrue(($kioskJson['ok'] ?? false) === true && str_contains((string) ($kioskJson['svg'] ?? ''), '<svg'), 'Endpoint kiosk QR mengembalikan payload SVG valid');
+
+    // Uji Leaflet OSM CSP dan kebersihan PWA layout
+    $cspHeader = $healthRes->headers()['Content-Security-Policy'] ?? '';
+    assertTrue(str_contains($cspHeader, 'https://*.tile.openstreetmap.org'), 'CSP mengizinkan tile OpenStreetMap');
+
+    // Login admin untuk render view /admin/settings
+    Session::set('_auth_user_id', (int) $users->findByUsername('admin')['id']);
+    $adminSettingsRes = $router->dispatch(new Request('GET', '/admin/settings'));
+    assertEquals(200, $adminSettingsRes->status(), 'GET /admin/settings mengembalikan 200 untuk admin');
+    assertTrue(str_contains($adminSettingsRes->body(), 'id="officeMap"'), 'Halaman settings memuat kontainer peta #officeMap');
+    assertTrue(str_contains($adminSettingsRes->body(), 'leaflet.css') && str_contains($adminSettingsRes->body(), 'leaflet.js'), 'Halaman settings memuat aset Leaflet');
+
+    // Uji tampilan employee tidak memuat tombol install aplikasi
+    Session::set('_auth_user_id', (int) $users->findByUsername('emp.satu')['id']);
+    $empDashboardRes = $router->dispatch(new Request('GET', '/app'));
+    assertEquals(200, $empDashboardRes->status(), 'GET /app mengembalikan 200 untuk karyawan');
+    assertTrue(!str_contains($empDashboardRes->body(), 'id="pwaInstallBtn"'), 'Header employee PWA bebas dari tombol Install Aplikasi');
 } finally {
     // Cleanup temp directory
     $cleanDir = static function (string $dir) use (&$cleanDir): void {

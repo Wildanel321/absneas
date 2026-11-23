@@ -23,12 +23,11 @@
         </div>
       </div>
       <div class="action-row">
-        <button type="button" id="pwaInstallBtn" class="btn btn-primary btn-sm" hidden>Install Aplikasi</button>
-        <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.22);" data-theme-toggle aria-pressed="false">
+        <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.22);min-height:44px;min-width:44px;" data-theme-toggle aria-pressed="false">
           <span data-theme-label>Mode Gelap</span>
         </button>
         <?php if (($user['role'] ?? '') === 'admin'): ?>
-          <a href="/admin" class="btn btn-sm" style="background:#5B3FD6;color:#fff;">Panel Admin</a>
+          <a href="/admin" class="btn btn-sm" style="background:#5B3FD6;color:#fff;min-height:44px;display:inline-flex;align-items:center;">Panel Admin</a>
         <?php endif; ?>
       </div>
     </header>

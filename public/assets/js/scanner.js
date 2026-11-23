@@ -31,6 +31,10 @@
     const gpsDistanceEl = document.getElementById('gpsDistanceText');
     const gpsAccuracyEl = document.getElementById('gpsAccuracyText');
     const scanFeedbackEl = document.getElementById('scanFeedback');
+    const scannerReticle = document.getElementById('scannerReticle');
+    const selfieReticle = document.getElementById('selfieReticle');
+    const selfieActionRow = document.getElementById('selfieActionRow');
+    const snapSelfieBtn = document.getElementById('snapSelfieBtn');
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });

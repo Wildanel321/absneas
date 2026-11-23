@@ -17,13 +17,27 @@ final class QrTokenService
     }
 
     /**
+     * Mengembalikan jam pulang yang berlaku berdasarkan hari:
+     * Sabtu => saturday_work_end_time (default 12:00)
+     * Senin-Jumat => work_end_time (default 14:00)
+     */
+    public function getWorkEndTimeForDay(int $timestamp): string
+    {
+        $isoDay = (int) date('N', $timestamp);
+        if ($isoDay === 6) {
+            return $this->settings->get('saturday_work_end_time', '12:00');
+        }
+        return $this->settings->get('work_end_time', '14:00');
+    }
+
+    /**
      * Menentukan mode QR otomatis berdasarkan jadwal kantor saat ini.
      * Sebelum (work_end_time - checkout_open_before_minutes) => checkin, setelahnya => checkout.
      */
     public function resolveScheduledMode(?int $nowTimestamp = null): string
     {
         $now = $nowTimestamp ?? time();
-        $workEnd = $this->settings->get('work_end_time', '17:00');
+        $workEnd = $this->getWorkEndTimeForDay($now);
         $openBefore = max(0, $this->settings->getInt('checkout_open_before_minutes', 30));
 
         $todayStr = date('Y-m-d', $now);
@@ -44,8 +58,11 @@ final class QrTokenService
     public function scheduleInfo(?int $nowTimestamp = null): array
     {
         $now = $nowTimestamp ?? time();
-        $workStart = $this->settings->get('work_start_time', '08:00');
-        $workEnd = $this->settings->get('work_end_time', '17:00');
+        $isoDay = (int) date('N', $now);
+        $isSaturday = ($isoDay === 6);
+        $workStart = $this->settings->get('work_start_time', '07:45');
+        $workEnd = $this->getWorkEndTimeForDay($now);
+        $satEnd = $this->settings->get('saturday_work_end_time', '12:00');
         $openBefore = max(0, $this->settings->getInt('checkout_open_before_minutes', 30));
         $todayStr = date('Y-m-d', $now);
         $endTs = strtotime($todayStr . ' ' . $workEnd . ':00') ?: $now;
@@ -56,6 +73,8 @@ final class QrTokenService
             'mode' => $mode,
             'work_start_time' => $workStart,
             'work_end_time' => $workEnd,
+            'saturday_work_end_time' => $satEnd,
+            'is_saturday' => $isSaturday,
             'checkout_switch_time' => date('H:i', $switchTs),
             'refresh_seconds' => max(10, $this->settings->getInt('qr_refresh_seconds', 30)),
             'token_ttl_seconds' => max(15, $this->settings->getInt('qr_token_ttl_seconds', 45)),

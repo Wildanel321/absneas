@@ -1398,3 +1398,98 @@ tbody tr:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* Selfie capture guide */
+.selfie-reticle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(15, 29, 58, 0.4);
+  z-index: 10;
+}
+
+.selfie-face-oval {
+  width: 200px;
+  height: 250px;
+  border: 3px solid #5B3FD6;
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999px rgba(15, 29, 58, 0.45);
+}
+
+.selfie-label {
+  margin-top: 14px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(15, 29, 58, 0.85);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* Print Stylesheet */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
+  .no-print,
+  .sidebar,
+  .sidebar-backdrop,
+  .topbar,
+  .filter-bar,
+  .action-row,
+  .skip-link,
+  .admin-shell > .sidebar,
+  [data-theme-toggle] {
+    display: none !important;
+  }
+  body, .admin-shell, .admin-content-wrap, .main-container {
+    background: #ffffff !important;
+    color: #000000 !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 8.5pt !important;
+    margin-top: 10px !important;
+  }
+  th, td {
+    border: 1px solid #444444 !important;
+    padding: 5px 6px !important;
+    color: #000000 !important;
+  }
+  th {
+    background-color: #f2f2f2 !important;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .badge {
+    border: 1px solid #333333 !important;
+    background: transparent !important;
+    color: #000000 !important;
+    font-size: 7.5pt !important;
+    padding: 2px 4px !important;
+  }
+  @page {
+    margin: 1.5cm 1cm;
+    size: A4 portrait;
+  }
+}
