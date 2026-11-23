@@ -27,3 +27,9 @@
 - [x] **Task 3.4:** Implement Web Audio API melodic 2-tone chime (`playChime()`) and Web Speech Synthesis API (`speakAnnouncement()`) in Indonesian in `public/assets/js/kiosk.js`.
 - [x] **Task 3.5:** Add sound toggle button with browser autoplay policy auto-unlocking on TV display.
 - [x] **Task 3.6:** Add test coverage in `tests/run.php`: 85 tests passed, 0 failed.
+
+## Sprint 4: PWA Offline Page Theming & Illustration
+- [x] **Task 4.1:** Copy `images.jpg` to `public/images.jpg` and `public/assets/images/offline.jpg`.
+- [x] **Task 4.2:** Redesign `public/offline.html` with `#FEFAF3` warm background, responsive centered card, and `images.jpg` illustration.
+- [x] **Task 4.3:** Precache `/images.jpg` in `public/sw.js` and bump cache version to `smart-attendance-static-v2`.
+- [x] **Task 4.4:** Add test coverage in `tests/run.php`: 90 tests passed, 0 failed.

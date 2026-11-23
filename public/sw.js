@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'smart-attendance-static-v1';
+const CACHE_VERSION = 'smart-attendance-static-v3';
 const STATIC_ASSETS = [
   '/assets/css/app.css',
   '/assets/js/app.js',
@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
   '/icons/icon-512.png',
   '/manifest.json',
   '/offline.html',
+  '/ilustrasi.gif',
 ];
 
 self.addEventListener('install', (event) => {

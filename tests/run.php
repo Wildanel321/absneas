@@ -340,7 +340,8 @@ try {
     assertEquals(200, $kioskViewRes->status(), 'GET /kiosk mengembalikan 200 dengan key valid');
     assertTrue(str_contains($kioskViewRes->body(), 'id="kioskSoundBtn"'), 'Monitor Kiosk memuat tombol toggle suara');
     assertTrue(str_contains($kioskViewRes->body(), 'id="kioskAttendanceAlert"'), 'Monitor Kiosk memuat kontainer alert pop-up kehadiran TV');
-    assertTrue(str_contains($kioskViewRes->body(), 'id="kioskRecentList"'), 'Monitor Kiosk memuat daftar kehadiran terbaru hari ini');
+    assertTrue(str_contains($kioskViewRes->body(), 'id="kioskQrBox"'), 'Monitor Kiosk memuat kartu QR Code besar di tengah');
+    assertTrue(!str_contains($kioskViewRes->body(), 'id="kioskRecentList"'), 'Monitor Kiosk bebas dari daftar tabel/list agar tampilan bersih dan fokus ke QR');
 
     // Uji Leaflet OSM CSP dan kebersihan PWA layout
     $cspHeader = $healthRes->headers()['Content-Security-Policy'] ?? '';
@@ -366,6 +367,14 @@ try {
     assertTrue(str_contains($reportsRes->body(), 'Cetak Laporan'), 'Halaman laporan memuat tombol Cetak Laporan');
     assertTrue(str_contains($reportsRes->body(), 'Foto Selfie'), 'Halaman laporan memuat kolom Foto Selfie');
     assertTrue(str_contains($reportsRes->body(), 'print-signatures'), 'Halaman laporan memuat bagian tanda tangan cetak');
+
+    // Uji Halaman Offline PWA (#FEFAF3 & GIF ilustrasi.gif)
+    $offlineHtmlPath = __DIR__ . '/../public/offline.html';
+    assertTrue(is_file($offlineHtmlPath), 'File public/offline.html tersedia');
+    $offlineContent = (string) file_get_contents($offlineHtmlPath);
+    assertTrue(str_contains($offlineContent, '#FEFAF3'), 'Halaman offline memakai warna background #FEFAF3');
+    assertTrue(str_contains($offlineContent, 'data:image/gif;base64,'), 'Halaman offline memuat gambar GIF inline base64 data URI');
+    assertTrue(is_file(__DIR__ . '/../public/ilustrasi.gif'), 'Aset gambar public/ilustrasi.gif tersedia');
 } finally {
     // Cleanup temp directory
     $cleanDir = static function (string $dir) use (&$cleanDir): void {

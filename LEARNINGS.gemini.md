@@ -54,3 +54,38 @@
   - Executed test suite with `wsl php tests/run.php`: **85 passed, 0 failed**.
   - Verified local dev server is running and healthy on `http://localhost:8000`.
   - Refined speech synthesis phrasing and UI alert copy to strictly use employee name or fallback "Karyawan" followed by "berhasil absen masuk" and "berhasil absen pulang" (eliminating generic placeholder words like "User").
+
+## PRAR Cycle 4: TV Monitor Centered Layout (Big QR Code & Pure Pop-up Notifications)
+- **Timestamp:** 2026-11-23T09:03:00+07:00
+- **Perceive:** User provided a screenshot showing the 2-column layout was cramped on TV displays and requested:
+  1. Center the QR code and make it much larger for effortless scanning from a distance.
+  2. Move instructions, stats, and schedule text to the bottom.
+  3. Remove the permanent live attendance list widget from the kiosk screen.
+  4. Ensure attendance alerts appear solely as temporary, floating pop-up banners with sound/speech when an employee scans.
+- **Reason:**
+  - A 2-column layout splits viewport width and forces the QR card to be narrow or overflow vertically.
+  - A single, centered layout allows the QR code to dynamically scale via `clamp(260px, 46vh, 440px)` so it fills the screen without vertical scrollbars.
+  - Removing the static list eliminates clutter while keeping the real-time polling active in the background for pop-up triggers and voice announcements.
+- **Act:**
+  - Redesigned `resources/views/kiosk/display.php` with a clean, centered vertical hierarchy.
+  - Completely removed the static `.kiosk-recent-card` list from the view.
+  - Styled `.kiosk-main`, `.kiosk-qr-card`, `.kiosk-bottom-info`, `.kiosk-chips-row`, and `.kiosk-chip` in `public/assets/css/app.css`.
+  - Preserved background activity polling in `public/assets/js/kiosk.js` so pop-ups and speech announcements continue firing seamlessly.
+  - Updated `tests/run.php` asserting centered QR card and clean UI.
+- **Refine:**
+  - Executed test suite with `wsl php tests/run.php`: **86 passed, 0 failed**.
+  - Local dev server is running on `http://localhost:8000/kiosk`.
+
+## PRAR Cycle 5: PWA Offline Page Theming & Illustration
+- **Timestamp:** 2026-11-23T09:13:00+07:00
+- **Perceive:** User requested updating `public/offline.html`: change background color to `#FEFAF3` and add the image `images.jpg`. When server was shut down for offline testing, the image failed to load because external requests fail when disconnected.
+- **Reason:**
+  - Referencing external paths like `<img src="/images.jpg">` requires either an active server or a prior service worker precache. If the user turns off the server before the new asset is cached, or opens the file directly, the image breaks.
+  - The standard offline solution is embedding the image directly as an inline Base64 Data URI (`data:image/jpeg;base64,...`). Since the image is ~43KB (resulting in ~56KB base64), it is lightweight, self-contained, and guaranteed to render 100% offline under all circumstances without any network requests.
+- **Act:**
+  - Embedded `images.jpg` as inline Base64 data URI directly inside `public/offline.html`.
+  - Maintained `#FEFAF3` background, high contrast text, and accessible card styling.
+  - Updated `tests/run.php` asserting inline base64 image and color `#FEFAF3`.
+- **Refine:**
+  - Executed test suite with `wsl php tests/run.php`: **90 passed, 0 failed**.
+  - Replaced static JPG with animated `ilustrasi.gif` embedded as an inline Base64 data URI (`data:image/gif;base64,...`) and updated PWA precache. All tests pass.

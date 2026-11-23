@@ -1207,28 +1207,43 @@ tbody tr:hover {
   color: #ffffff;
 }
 
+/* Kiosk Layout - Centered Large QR with Bottom Info */
+.kiosk-app-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
 .kiosk-main {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 28px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  max-width: 1200px;
+  justify-content: center;
+  gap: 14px;
+  max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 28px;
+  padding: 16px 24px 24px;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .kiosk-qr-card {
   background: #ffffff;
   color: #0f1d3a;
-  border-radius: 14px;
-  padding: 24px;
+  border-radius: 20px;
+  padding: 20px 24px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   border-top: 6px solid #5b3fd6;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.45);
+  width: fit-content;
+  max-width: 94vw;
+  transition: border-color 250ms ease;
 }
 
 .kiosk-qr-card.mode-checkout {
@@ -1236,7 +1251,8 @@ tbody tr:hover {
 }
 
 .kiosk-qr-box {
-  width: min(100%, 360px);
+  width: clamp(260px, 46vh, 440px);
+  height: clamp(260px, 46vh, 440px);
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
@@ -1247,6 +1263,11 @@ tbody tr:hover {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.kiosk-progress-wrap {
+  width: 100%;
+  margin-top: 2px;
 }
 
 .kiosk-progress {
@@ -1264,189 +1285,102 @@ tbody tr:hover {
   transition: width 250ms linear;
 }
 
-.kiosk-info {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
 .kiosk-mode-tag {
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  padding: 6px 14px;
+  padding: 6px 18px;
   border-radius: var(--radius-badge);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1rem;
   background: #5b3fd6;
   color: #ffffff;
+  letter-spacing: 0.02em;
 }
 
 .kiosk-mode-tag.mode-checkout {
   background: #0e7c5b;
 }
 
-.kiosk-stat-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.kiosk-stat {
-  background: #162647;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-card);
-  padding: 16px;
-}
-
-.kiosk-stat-num {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.kiosk-stat-label {
-  font-size: 0.85rem;
-  color: #cbd5e1;
-}
-
-/* Kiosk Recent Attendance Feed */
-.kiosk-recent-card {
-  background: #162647;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-card);
-  padding: 16px;
+/* Bottom info & controls section */
+.kiosk-bottom-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.kiosk-recent-header {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 8px;
+  gap: 12px;
+  width: 100%;
+  max-width: 720px;
 }
 
-.kiosk-live-badge {
+.kiosk-desc {
+  color: #e2e8f0;
+  font-size: clamp(0.92rem, 1.3vw, 1.05rem);
+  margin: 0;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.kiosk-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.kiosk-chip {
+  background: #162647;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.86rem;
+  color: #cbd5e1;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(14, 124, 91, 0.25);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.4);
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  gap: 6px;
 }
 
-.kiosk-live-badge::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 6px #34d399;
-  animation: kioskPulse 1.8s infinite;
-}
-
-@keyframes kioskPulse {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(0.85); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-.kiosk-recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-.kiosk-recent-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 12px;
-  transition: background 200ms ease;
-}
-
-.kiosk-recent-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.kiosk-recent-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.kiosk-avatar-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #253864;
+.kiosk-chip strong {
   color: #ffffff;
   font-weight: 700;
-  font-size: 0.9rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.kiosk-recent-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.kiosk-recent-name {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.kiosk-recent-sub {
-  font-size: 0.78rem;
-  color: #cbd5e1;
-}
-
-.kiosk-recent-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.kiosk-recent-badge.mode-checkin {
-  background: rgba(14, 124, 91, 0.25);
-  color: #6ee7b7;
-  border: 1px solid rgba(110, 231, 183, 0.35);
-}
-
-.kiosk-recent-badge.mode-checkout {
-  background: rgba(91, 63, 214, 0.25);
-  color: #c4b5fd;
-  border: 1px solid rgba(196, 181, 253, 0.35);
-}
-
-.kiosk-recent-empty {
-  font-size: 0.85rem;
+.kiosk-chip-label {
   color: #94a3b8;
-  text-align: center;
-  padding: 18px 8px;
+}
+
+.kiosk-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.kiosk-subtle-btn {
+  background: #162647;
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.kiosk-subtle-btn:hover {
+  background: #203660;
+  color: #ffffff;
+}
+
+.kiosk-mode-select {
+  background: #162647;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  min-height: 32px;
 }
 
 /* Kiosk TV Live Attendance Alert Overlay */
