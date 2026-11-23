@@ -37,9 +37,16 @@ final class AttendanceService
         float $lat,
         float $lng,
         float $accuracyM,
-        ?string $photoPath = null,
+        string|int|null $photoOrTimestamp = null,
         ?int $nowTimestamp = null
     ): array {
+        if (is_int($photoOrTimestamp) && $nowTimestamp === null) {
+            $nowTimestamp = $photoOrTimestamp;
+            $photoPath = null;
+        } else {
+            $photoPath = is_string($photoOrTimestamp) ? $photoOrTimestamp : null;
+        }
+
         $now = $nowTimestamp ?? time();
         $today = date('Y-m-d', $now);
         $nowSql = date('Y-m-d H:i:s', $now);

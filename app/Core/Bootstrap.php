@@ -72,6 +72,7 @@ final class Bootstrap
         $adminCsrf = [$mw->requireAdmin(), $mw->verifyCsrf()];
         $csrfOnly = [$mw->verifyCsrf()];
         $kioskOnly = [$mw->requireKioskAccess()];
+        $authOrKiosk = [$mw->requireAuthOrKioskAccess()];
 
         // Controllers
         $authCtrl = new AuthController($app, $auth, $settings, $audit);
@@ -106,11 +107,12 @@ final class Bootstrap
         $router->post('/app/profile', [$empCtrl, 'updateProfile'], $authCsrf);
         $router->post('/app/profile/password', [$empCtrl, 'changePassword'], $authCsrf);
         $router->post('/api/attendance/scan', [$empCtrl, 'submitScan'], $authCsrf);
-        $router->get('/photo/{folder}/{file}', [$empCtrl, 'servePhoto'], $authOnly);
+        $router->get('/photo/{folder}/{file}', [$empCtrl, 'servePhoto'], $authOrKiosk);
 
         // Kiosk QR Display routes
         $router->get('/kiosk', [$kioskCtrl, 'display'], $kioskOnly);
         $router->get('/api/kiosk/qr', [$kioskCtrl, 'currentQr'], $kioskOnly);
+        $router->get('/api/kiosk/activity', [$kioskCtrl, 'recentActivity'], $kioskOnly);
 
         // Admin Dashboard, Reports & Leaves
         $router->get('/admin', [$adminDashCtrl, 'index'], $adminOnly);

@@ -130,7 +130,9 @@
       if (stopBtn) stopBtn.hidden = true;
     }
 
-    async function submitToken(rawToken) {
+    let pendingToken = null;
+
+    async function promptOrCaptureSelfie(rawToken) {
       if (submitting) return;
 
       if (!navigator.onLine) {
@@ -151,9 +153,64 @@
         return;
       }
 
+      pendingToken = rawToken;
+      scanning = false;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
+      // Ambil snapshot awal dari video saat ini sebagai cadangan
+      let initialSnapshot = null;
+      try {
+        canvas.width = 320;
+        canvas.height = 240;
+        ctx.drawImage(video, 0, 0, 320, 240);
+        initialSnapshot = canvas.toDataURL('image/jpeg', 0.65);
+      } catch (_) {}
+
+      // Tampilkan panduan selfie & tombol
+      if (scannerReticle) scannerReticle.style.display = 'none';
+      if (selfieReticle) selfieReticle.style.display = 'flex';
+      if (selfieActionRow) selfieActionRow.style.display = 'flex';
+      showFeedback('info', 'QR Terdeteksi! Posisikan wajah Anda lalu tekan Ambil Foto Selfie.');
+
+      // Coba buka kamera depan (user) untuk selfie
+      try {
+        if (stream) {
+          stream.getTracks().forEach((t) => t.stop());
+        }
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } },
+          audio: false,
+        });
+        video.srcObject = stream;
+        await video.play();
+      } catch (_) {
+        // Jika kamera depan tidak dapat diakses (misal laptop), tetap lanjutkan dengan video yang ada
+      }
+
+      if (snapSelfieBtn) {
+        snapSelfieBtn.onclick = async () => {
+          let finalPhoto = initialSnapshot;
+          try {
+            canvas.width = 320;
+            canvas.height = 240;
+            ctx.drawImage(video, 0, 0, 320, 240);
+            finalPhoto = canvas.toDataURL('image/jpeg', 0.65);
+          } catch (_) {}
+          await sendAttendanceRequest(pendingToken, finalPhoto);
+        };
+      }
+    }
+
+    async function sendAttendanceRequest(rawToken, photoData) {
       submitting = true;
       stopCamera();
-      showFeedback('info', 'QR terdeteksi. Memvalidasi token dan lokasi GPS di server...');
+      if (selfieReticle) selfieReticle.style.display = 'none';
+      if (selfieActionRow) selfieActionRow.style.display = 'none';
+      if (scannerReticle) scannerReticle.style.display = '';
+      showFeedback('info', 'Mengirim absensi dan memvalidasi lokasi di server...');
 
       try {
         const res = await fetch('/api/attendance/scan', {
@@ -168,6 +225,7 @@
             latitude: lastPos.latitude,
             longitude: lastPos.longitude,
             accuracy: lastPos.accuracy,
+            photo: photoData,
           }),
         });
 
@@ -184,6 +242,7 @@
         showFeedback('error', 'Gagal terhubung ke server absensi. Periksa koneksi jaringan Anda.');
       } finally {
         submitting = false;
+        pendingToken = null;
       }
     }
 
@@ -197,7 +256,7 @@
         if (detector) {
           const codes = await detector.detect(video);
           if (codes && codes.length > 0 && codes[0].rawValue) {
-            await submitToken(codes[0].rawValue);
+            await promptOrCaptureSelfie(codes[0].rawValue);
             return;
           }
         } else if (typeof window.jsQR === 'function' && ctx) {
@@ -210,7 +269,7 @@
             const imgData = ctx.getImageData(0, 0, w, h);
             const code = window.jsQR(imgData.data, w, h, { inversionAttempts: 'dontInvert' });
             if (code && code.data) {
-              await submitToken(code.data);
+              await promptOrCaptureSelfie(code.data);
               return;
             }
           }

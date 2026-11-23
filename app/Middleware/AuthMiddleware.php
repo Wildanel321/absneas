@@ -83,4 +83,25 @@ final class AuthMiddleware
             return Response::redirect('/login');
         };
     }
+
+    public function requireAuthOrKioskAccess(): callable
+    {
+        return function (Request $req, callable $next): Response {
+            if ($this->auth->check()) {
+                return $next($req);
+            }
+
+            $storedKey = $this->settings->get('kiosk_display_key', '');
+            $providedKey = (string) ($req->query('key') ?? $req->header('X-Kiosk-Key') ?? '');
+
+            if ($storedKey !== '' && $providedKey !== '' && hash_equals($storedKey, $providedKey)) {
+                return $next($req);
+            }
+
+            if ($req->expectsJson()) {
+                return Response::json(['ok' => false, 'message' => 'Akses memerlukan login atau kunci kiosk yang valid.'], 403);
+            }
+            return Response::redirect('/login');
+        };
+    }
 }

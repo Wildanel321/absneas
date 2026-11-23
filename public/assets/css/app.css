@@ -1310,6 +1310,245 @@ tbody tr:hover {
   color: #cbd5e1;
 }
 
+/* Kiosk Recent Attendance Feed */
+.kiosk-recent-card {
+  background: #162647;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kiosk-recent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.kiosk-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(14, 124, 91, 0.25);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.kiosk-live-badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+  animation: kioskPulse 1.8s infinite;
+}
+
+@keyframes kioskPulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.kiosk-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.kiosk-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: background 200ms ease;
+}
+
+.kiosk-recent-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.kiosk-recent-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.kiosk-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #253864;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.kiosk-recent-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.kiosk-recent-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kiosk-recent-sub {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+
+.kiosk-recent-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.kiosk-recent-badge.mode-checkin {
+  background: rgba(14, 124, 91, 0.25);
+  color: #6ee7b7;
+  border: 1px solid rgba(110, 231, 183, 0.35);
+}
+
+.kiosk-recent-badge.mode-checkout {
+  background: rgba(91, 63, 214, 0.25);
+  color: #c4b5fd;
+  border: 1px solid rgba(196, 181, 253, 0.35);
+}
+
+.kiosk-recent-empty {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 18px 8px;
+}
+
+/* Kiosk TV Live Attendance Alert Overlay */
+.kiosk-alert-overlay {
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-40px) scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 10000;
+  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease, visibility 380ms ease;
+  width: min(92vw, 560px);
+}
+
+.kiosk-alert-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.kiosk-alert-card {
+  background: #0d172e;
+  color: #ffffff;
+  border: 2px solid #5b3fd6;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85), 0 0 32px rgba(91, 63, 214, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kiosk-alert-overlay.mode-checkout .kiosk-alert-card {
+  border-color: #0e7c5b;
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85), 0 0 32px rgba(14, 124, 91, 0.45);
+}
+
+.kiosk-alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.kiosk-alert-badge.mode-checkin {
+  background: #0e7c5b;
+  color: #ffffff;
+}
+
+.kiosk-alert-badge.mode-checkout {
+  background: #5b3fd6;
+  color: #ffffff;
+}
+
+.kiosk-alert-body {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.kiosk-alert-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.kiosk-alert-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.kiosk-alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.kiosk-alert-name {
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.kiosk-alert-msg {
+  font-size: clamp(0.92rem, 1.3vw, 1.1rem);
+  color: #cbd5e1;
+  line-height: 1.35;
+}
+
 /* Responsive Tablet / Small Laptop State (681px .. 1080px) */
 @media (max-width: 1080px) {
   .admin-shell {

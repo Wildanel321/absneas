@@ -88,9 +88,13 @@ try {
     fwrite(STDOUT, "\n=== TAHAP 1: Fondasi, Database, Autentikasi, CRUD Karyawan ===\n");
     $app = new Application($config);
     $db = $app->db();
-    $sql = file_get_contents($basePath . '/database/migrations/001_initial_schema.sql');
-    assertTrue(is_string($sql) && $sql !== '', 'File migrasi 001_initial_schema.sql terbaca');
-    $db->pdo()->exec($sql);
+    $sqlFiles = glob($basePath . '/database/migrations/*.sql') ?: [];
+    sort($sqlFiles, SORT_STRING);
+    foreach ($sqlFiles as $sqlFile) {
+        $sql = file_get_contents($sqlFile);
+        assertTrue(is_string($sql) && $sql !== '', 'File migrasi ' . basename($sqlFile) . ' terbaca');
+        $db->pdo()->exec($sql);
+    }
 
     $walMode = strtolower((string) $db->fetchValue('PRAGMA journal_mode'));
     assertEquals('wal', $walMode, 'SQLite journal_mode aktif WAL');
@@ -183,38 +187,57 @@ try {
     $qrSvg = new QrSvgGenerator();
     $attService = new AttendanceService($db, $attendances, $settings, $holidays, $leaves, $qrTokens, $geo);
 
-    // Uji perpindahan jadwal otomatis checkin vs checkout (work_end 17:00, open_before 30 => 16:30)
+    // Uji jadwal khusus: Senin-Jumat pulang 14:00 (checkout 13:30), Sabtu pulang 12:00 (checkout 11:30)
+    // Jam masuk 07:45 dengan toleransi 20 menit (tepat waktu sampai 08:05)
     $mondayMorning = strtotime('2026-11-16 07:55:00'); // Senin pagi
-    $mondayLate = strtotime('2026-11-16 08:25:00');    // Senin terlambat (melewati 08:15)
-    $mondayEvening = strtotime('2026-11-16 16:45:00'); // Senin sore (mode checkout)
+    $mondayDeadline = strtotime('2026-11-16 08:05:00'); // Senin pas batas 08:05
+    $mondayLate = strtotime('2026-11-16 08:25:00');    // Senin terlambat (melewati 08:05)
+    $mondayEvening = strtotime('2026-11-16 13:45:00'); // Senin sore (pulang 14:00, switch 13:30 => mode checkout)
+    $saturdayMorning = strtotime('2026-11-21 10:00:00'); // Sabtu pagi => mode checkin
+    $saturdayNoon = strtotime('2026-11-21 11:45:00');    // Sabtu siang (pulang 12:00, switch 11:30 => mode checkout)
 
     assertEquals('checkin', $qrTokens->resolveScheduledMode($mondayMorning), 'Jadwal 07:55 otomatis mode checkin');
-    assertEquals('checkout', $qrTokens->resolveScheduledMode($mondayEvening), 'Jadwal 16:45 otomatis mode checkout');
+    assertEquals('checkout', $qrTokens->resolveScheduledMode($mondayEvening), 'Jadwal Senin 13:45 otomatis mode checkout (pulang 14:00)');
+    assertEquals('checkin', $qrTokens->resolveScheduledMode($saturdayMorning), 'Jadwal Sabtu 10:00 otomatis mode checkin');
+    assertEquals('checkout', $qrTokens->resolveScheduledMode($saturdayNoon), 'Jadwal Sabtu 11:45 otomatis mode checkout (pulang 12:00)');
 
     $issuedIn = $qrTokens->issueToken('checkin', '127.0.0.1', $mondayMorning);
     $svgOut = $qrSvg->renderSvg($issuedIn['token']);
     assertTrue(str_starts_with($svgOut, '<svg') && str_contains($svgOut, '<path'), 'QrSvgGenerator menghasilkan SVG valid');
 
-    // Karyawan 1 check-in tepat waktu (07:55) di dalam radius
-    $ci1 = $attService->processScan($emp1Id, $issuedIn['token'], -6.200100, 106.816666, 15.0, $mondayMorning);
+    // Karyawan 1 check-in tepat waktu (07:55) di dalam radius dengan foto selfie
+    $fakePhoto = '2026-11/selfie_emp1.jpg';
+    $ci1 = $attService->processScan($emp1Id, $issuedIn['token'], -6.200100, 106.816666, 15.0, $fakePhoto, $mondayMorning);
     assertTrue($ci1['ok'], 'Check-in tepat waktu berhasil');
     assertEquals('on_time', $ci1['data']['status'], 'Status tercatat on_time');
     assertEquals(0, $ci1['data']['late_minutes'], 'Late minutes = 0');
+    $att1Record = $attendances->findByUserAndDate($emp1Id, '2026-11-16');
+    assertEquals($fakePhoto, $att1Record['checkin_photo'], 'Foto selfie check-in tersimpan di database');
+
+    // Uji batas 08:05 masih tepat waktu
+    [$statusDeadline, $lateMinDeadline] = $attService->evaluateArrival($mondayDeadline);
+    assertEquals('on_time', $statusDeadline, 'Pukul 08:05 pas batas toleransi tercatat on_time');
+    assertEquals(0, $lateMinDeadline, 'Pukul 08:05 late_minutes = 0');
+
+    // Uji lewat 08:05 (08:25) terlambat 40 menit dari 07:45
+    [$statusLate, $lateMinLate] = $attService->evaluateArrival($mondayLate);
+    assertEquals('late', $statusLate, 'Pukul 08:25 tercatat late');
+    assertEquals(40, $lateMinLate, 'Pukul 08:25 late_minutes = 40 menit dari 07:45');
 
     // Replay attack: karyawan 1 memakai token sama lagi => ditolak
-    $replay = $attService->processScan($emp1Id, $issuedIn['token'], -6.200100, 106.816666, 15.0, $mondayMorning + 5);
+    $replay = $attService->processScan($emp1Id, $issuedIn['token'], -6.200100, 106.816666, 15.0, null, $mondayMorning + 5);
     assertTrue(!$replay['ok'], 'Replay attack oleh karyawan yang sama ditolak');
 
     // Double attendance dengan token baru pada hari sama => ditolak
     $issuedIn2 = $qrTokens->issueToken('checkin', '127.0.0.1', $mondayLate);
-    $doubleIn = $attService->processScan($emp1Id, $issuedIn2['token'], -6.200100, 106.816666, 15.0, $mondayLate);
+    $doubleIn = $attService->processScan($emp1Id, $issuedIn2['token'], -6.200100, 106.816666, 15.0, null, $mondayLate);
     assertTrue(!$doubleIn['ok'] && $doubleIn['status'] === 409, 'Double check-in hari sama ditolak (409)');
 
-    // Karyawan 2 check-in terlambat (08:25 => 25 menit setelah 08:00, melewati toleransi 15 menit)
-    $ci2 = $attService->processScan($emp2Id, $issuedIn2['token'], -6.200100, 106.816666, 22.0, $mondayLate);
+    // Karyawan 2 check-in terlambat (08:25 => 40 menit setelah 07:45, melewati toleransi 20 menit)
+    $ci2 = $attService->processScan($emp2Id, $issuedIn2['token'], -6.200100, 106.816666, 22.0, null, $mondayLate);
     assertTrue($ci2['ok'], 'Check-in karyawan 2 berhasil');
     assertEquals('late', $ci2['data']['status'], 'Status karyawan 2 otomatis late');
-    assertEquals(25, $ci2['data']['late_minutes'], 'Keterlambatan otomatis terhitung 25 menit');
+    assertEquals(40, $ci2['data']['late_minutes'], 'Keterlambatan otomatis terhitung 40 menit');
 
     // Token kedaluwarsa ditolak
     $expiredAttempt = $attService->processScan($emp2Id, $issuedIn['token'], -6.200100, 106.816666, 15.0, $mondayMorning + 120);
@@ -302,6 +325,22 @@ try {
     assertEquals(200, $kioskGoodKey->status(), 'GET /api/kiosk/qr dengan key valid mengembalikan 200');
     $kioskJson = json_decode($kioskGoodKey->body(), true);
     assertTrue(($kioskJson['ok'] ?? false) === true && str_contains((string) ($kioskJson['svg'] ?? ''), '<svg'), 'Endpoint kiosk QR mengembalikan payload SVG valid');
+    assertTrue(isset($kioskJson['recent_attendances']) && is_array($kioskJson['recent_attendances']), 'Endpoint kiosk QR menyertakan daftar recent_attendances');
+
+    // Uji endpoint aktivitas TV /api/kiosk/activity dan view monitor /kiosk
+    $actBadKey = $router->dispatch(new Request('GET', '/api/kiosk/activity', ['key' => 'kunci-salah']));
+    assertEquals(403, $actBadKey->status(), 'GET /api/kiosk/activity dengan key salah ditolak (403)');
+
+    $actGoodKey = $router->dispatch(new Request('GET', '/api/kiosk/activity', ['key' => 'test-kiosk-key-1234']));
+    assertEquals(200, $actGoodKey->status(), 'GET /api/kiosk/activity dengan key valid mengembalikan 200');
+    $actJson = json_decode($actGoodKey->body(), true);
+    assertTrue(($actJson['ok'] ?? false) === true && isset($actJson['recent_attendances']), 'Endpoint /api/kiosk/activity mengembalikan payload live activity');
+
+    $kioskViewRes = $router->dispatch(new Request('GET', '/kiosk', ['key' => 'test-kiosk-key-1234']));
+    assertEquals(200, $kioskViewRes->status(), 'GET /kiosk mengembalikan 200 dengan key valid');
+    assertTrue(str_contains($kioskViewRes->body(), 'id="kioskSoundBtn"'), 'Monitor Kiosk memuat tombol toggle suara');
+    assertTrue(str_contains($kioskViewRes->body(), 'id="kioskAttendanceAlert"'), 'Monitor Kiosk memuat kontainer alert pop-up kehadiran TV');
+    assertTrue(str_contains($kioskViewRes->body(), 'id="kioskRecentList"'), 'Monitor Kiosk memuat daftar kehadiran terbaru hari ini');
 
     // Uji Leaflet OSM CSP dan kebersihan PWA layout
     $cspHeader = $healthRes->headers()['Content-Security-Policy'] ?? '';
@@ -319,6 +358,14 @@ try {
     $empDashboardRes = $router->dispatch(new Request('GET', '/app'));
     assertEquals(200, $empDashboardRes->status(), 'GET /app mengembalikan 200 untuk karyawan');
     assertTrue(!str_contains($empDashboardRes->body(), 'id="pwaInstallBtn"'), 'Header employee PWA bebas dari tombol Install Aplikasi');
+
+    // Uji Cetak Laporan & kolom foto selfie di laporan admin
+    Session::set('_auth_user_id', (int) $users->findByUsername('admin')['id']);
+    $reportsRes = $router->dispatch(new Request('GET', '/admin/reports'));
+    assertEquals(200, $reportsRes->status(), 'GET /admin/reports mengembalikan 200');
+    assertTrue(str_contains($reportsRes->body(), 'Cetak Laporan'), 'Halaman laporan memuat tombol Cetak Laporan');
+    assertTrue(str_contains($reportsRes->body(), 'Foto Selfie'), 'Halaman laporan memuat kolom Foto Selfie');
+    assertTrue(str_contains($reportsRes->body(), 'print-signatures'), 'Halaman laporan memuat bagian tanda tangan cetak');
 } finally {
     // Cleanup temp directory
     $cleanDir = static function (string $dir) use (&$cleanDir): void {
